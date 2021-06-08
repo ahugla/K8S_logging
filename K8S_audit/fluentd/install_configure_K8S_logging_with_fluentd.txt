@@ -6,6 +6,10 @@ VRLI_IP=vrli
 
 
 
+cd /tmp
+
+
+
 # Dependancies
 # ------------
 yum install -y curl gpg gcc gcc-c++ make patch autoconf automake bison libffi-devel libtool patch readline-devel sqlite-devel zlib-devel openssl-devel
