@@ -1,6 +1,8 @@
+#!/bin/bash
+
 # Set Parameter
 # -------------
-VRLI_IP=
+VRLI_IP=vrli
 
 
 
@@ -27,11 +29,8 @@ source /usr/local/rvm/bin/rvm
 echo "*****************************************"
 var1=`ruby -v`
 echo "ruby version - avant install: " $var1
-
-
 var2=`type rvm | head -n 1`
 echo "is rvm a function? : " $var2
-
 
 echo "*****************************************"
 
