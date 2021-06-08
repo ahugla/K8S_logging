@@ -20,6 +20,23 @@ curl -sSL https://get.rvm.io | bash -s stable
 # install Ruby
 # ------------
 source /usr/local/rvm/bin/rvm
+
+
+# LOG
+# ---
+echo "*****************************************"
+var1=`ruby -v`
+echo "ruby version - avant install: " $var1
+
+
+var2=`type rvm | head -n 1`
+echo "is rvm a function? : " $var2
+
+
+echo "*****************************************"
+
+
+
 rvm install 2.5.1
 rvm use 2.5.1 --default
 
