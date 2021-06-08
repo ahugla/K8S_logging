@@ -19,6 +19,7 @@ curl -sSL https://get.rvm.io | bash -s stable
 
 # install Ruby
 # ------------
+source /usr/local/rvm/bin/rvm
 rvm install 2.5.1
 rvm use 2.5.1 --default
 
