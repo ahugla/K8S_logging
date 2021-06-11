@@ -4,7 +4,7 @@
 
 # Set Parameter
 # -------------
-VRLI_IP=vrli
+VRLI_IP=vrli.cpod-vrealize.az-fkd.cloud-garage.net
 
 
 
@@ -12,40 +12,31 @@ cd /tmp
 
 
 
-# Dependancies
-# ------------
-yum install -y curl gpg gcc gcc-c++ make patch autoconf automake bison libffi-devel libtool patch readline-devel sqlite-devel zlib-devel openssl-devel
-
-
-
-# Install RVM with default Ruby
-# -----------------------------
-sudo gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB
-curl -sSL https://get.rvm.io | bash -s stable --ruby
-source /usr/local/rvm/scripts/rvm
-
-
-
-# Log ruby version
-# ----------------
-var1=`ruby -v`
-echo "ruby version : " $var1
-
-
-
 # install fluentd
 # ---------------
 yum install -y gem
 gem install fluentd
-fluentd --setup /etc/fluent
+fluentd --setup /etc/fluent         # pour demarrer: fluentd -c /etc/fluent/fluent.conf -p /etc/fluent/plugin
+
+
+
+# Install Log Insight gem
+# -----------------------
 wget https://github.com/vmware/fluent-plugin-vmware-loginsight/releases/download/v1.0.0/fluent-plugin-vmware-loginsight-1.0.0.gem
 gem install fluent-plugin-vmware-loginsight-1.0.0.gem
+#   LE NOM DU GEM LOG INSIGHT (gem list) : fluent-plugin-vmware-loginsight    =>  dans le fichier de conf : @type vmware_loginsight
+
+
+# Ruby builds these plugins in ‘/usr/local/rvm/gems/ruby-3.0.0/gems/’, which means you would need to specify the full path of the gem directory where the plugins were built when starting Fluentd.
+# To make things easier, I copied the plugin files to ‘/etc/fluent/plugin’, which is the default directory that Fluentd looks for plugins. No extra parameters needed on startup.
+cp -r /usr/local/rvm/gems/ruby-3.0.0/gems/* /etc/fluent/plugin/
+
 
 
 
 # configure fluentd
 # -----------------
-cat >> /etc/fluent/fluent.conf <<EOF
+cat > /etc/fluent/fluent.conf << EOF
 
 <source>
   @id in_tail_kube_apiserver_logs
@@ -101,7 +92,7 @@ cat >> /etc/fluent/fluent.conf <<EOF
   @type record_transformer
   <record>
   log_type kube_apiserver
-  </record<
+  </record>
 </filter>
 
 <filter kubernetes.scheduler>
@@ -159,7 +150,7 @@ kubectl -n kube-system create configmap loginsight-fluentd-config --from-file=/e
 
 # create DaemonSet yaml
 # ---------------------
-cat > loginsight-fluent.yaml<<EOF
+cat > loginsight-fluent.yaml << EOF
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -223,7 +214,7 @@ spec:
      containers:
      - name: fluentd-loginsight
        image: projects.registry.vmware.com/vrealize_loginsight/fluentd:1.0
-       command: ["fluentd", "-c", "/etc/fluentd/fluent.conf", "-p", "/fluentd/plugins"]
+       command: ["fluentd", "-c", "/etc/fluent/fluent.conf", "-p", "/fluentd/plugins"]    # -p reference le plugin log insight a utilier DANS le container!!!!
        env:
        - name: FLUENTD_ARGS
          value: --no-supervisor -q
@@ -238,7 +229,7 @@ spec:
          mountPath: /var/log
          readOnly: false
        - name: config-volume
-         mountPath: /etc/fluentd
+         mountPath: /etc/fluent
          readOnly: true
      volumes:
      - name: varlog
@@ -257,4 +248,6 @@ kubectl apply -f loginsight-fluent.yaml
 
 
 
-
+# MARCHE MAIS PB C EST QUE Y A PAS DE LOG DANS /VAR/LOG/KUBE.....LOG
+#  NORMAL C EST SYSTEMD ET CA LOG DIFFEREMMENT
+#  SOIR SYSTEMD DEPOSE DANS /VAR/LOG/JOURNAL   SOIT IL GARDE EN MEMOIRE ....=>  PASSER PAR UN PLUGIN FLUENT POUR SYSTEMD

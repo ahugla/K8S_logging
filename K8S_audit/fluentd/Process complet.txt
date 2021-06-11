@@ -1,0 +1,10 @@
+sur CentOS 7.6
+--------------
+
+
+1/  Executer le script d' install de ruby:    
+	
+2/  LOGOUT / LOGON   => indispensable pour pouvoir utiliser ruby 3.0.0
+
+3/  Executer le script d'install, de configuration et de demarrage de fluentd et des gems : 
+
